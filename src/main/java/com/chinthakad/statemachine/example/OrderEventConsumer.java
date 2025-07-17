@@ -5,9 +5,12 @@ import com.chinthakad.statemachine.framework.StateMachineRepository;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class OrderEventConsumer {
+    private static final Logger log = LoggerFactory.getLogger(OrderEventConsumer.class);
     private static final StateMachineRepository<OrderState, OrderEvent, OrderEventMessage> repository = new StateMachineRepository<>();
 
     @Incoming("order-events")
@@ -15,14 +18,14 @@ public class OrderEventConsumer {
     public void consume(OrderEventMessage message) {
         StateMachine<OrderState, OrderEvent> sm = repository.get(message.orderId);
         if (sm == null) {
-            System.err.println("[Kafka] Order not found: " + message.orderId);
+            log.error("[Kafka] Order not found: {}", message.orderId);
             return;
         }
         try {
             OrderEvent event = OrderEvent.valueOf(message.event.toUpperCase());
             boolean success = sm.trigger(event);
             if (!success) {
-                System.err.println("[Kafka] Invalid transition for order " + message.orderId + ": " + message.event + ". Caching event.");
+                log.error("[Kafka] Invalid transition for order {}: {}. Caching event.", message.orderId, message.event);
                 repository.addPendingEvent(message.orderId, message);
             }
             sm.processPendingEvents(
@@ -41,7 +44,7 @@ public class OrderEventConsumer {
                 }
             );
         } catch (IllegalArgumentException e) {
-            System.err.println("[Kafka] Invalid event: " + message.event);
+            log.error("[Kafka] Invalid event: {}", message.event);
         }
     }
 

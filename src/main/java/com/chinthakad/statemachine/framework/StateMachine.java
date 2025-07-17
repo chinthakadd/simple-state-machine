@@ -8,13 +8,16 @@ import java.util.Set;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StateMachine<S, E> {
+    private static final Logger log = LoggerFactory.getLogger(StateMachine.class);
     private S currentState;
     private final Map<S, Map<E, S>> transitions = new HashMap<>();
     private final Map<E, BiConsumer<S, S>> callbacks = new HashMap<>();
     private final Map<TransitionKey<S, E>, BiConsumer<S, S>> transitionCallbacks = new HashMap<>();
-    private Consumer<String> invalidTransitionHandler = msg -> System.err.println(msg);
+    private Consumer<String> invalidTransitionHandler = msg -> log.error(msg);
 
     public StateMachine(S initialState) {
         this.currentState = initialState;
