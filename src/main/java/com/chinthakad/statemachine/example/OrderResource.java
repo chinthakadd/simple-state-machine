@@ -1,6 +1,8 @@
 package com.chinthakad.statemachine.example;
 
 import com.chinthakad.statemachine.framework.StateMachine;
+import com.chinthakad.statemachine.framework.StateMachineRepository;
+
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -17,14 +19,14 @@ public class OrderResource {
     public Response createOrder() {
         String id = java.util.UUID.randomUUID().toString();
         StateMachine<OrderState, OrderEvent> sm = OrderStateMachineFactory.create();
-        StateMachineRepository.save(id, sm);
+        OrderEventConsumer.getRepository().save(id, sm);
         return Response.ok(Map.of("id", id)).build();
     }
 
     @POST
     @Path("{id}/trigger/{event}")
     public Response triggerEvent(@PathParam("id") String id, @PathParam("event") String eventStr) {
-        StateMachine<OrderState, OrderEvent> sm = StateMachineRepository.get(id);
+        StateMachine<OrderState, OrderEvent> sm = OrderEventConsumer.getRepository().get(id);
         if (sm == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "Order not found")).build();
         }
@@ -44,7 +46,7 @@ public class OrderResource {
     @GET
     @Path("{id}")
     public Response getState(@PathParam("id") String id) {
-        StateMachine<OrderState, OrderEvent> sm = StateMachineRepository.get(id);
+        StateMachine<OrderState, OrderEvent> sm = OrderEventConsumer.getRepository().get(id);
         if (sm == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "Order not found")).build();
         }
