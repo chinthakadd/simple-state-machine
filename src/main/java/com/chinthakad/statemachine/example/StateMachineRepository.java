@@ -1,9 +1,10 @@
 package com.chinthakad.statemachine.example;
 
-import com.chinthakad.statemachine.framework.StateMachine;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.chinthakad.statemachine.framework.StateMachine;
+
 import java.util.Queue;
 import java.util.LinkedList;
 
